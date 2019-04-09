@@ -13,6 +13,7 @@ import random
 from board_util import GoBoardUtil, BLACK, WHITE, PASS
 from gtp_connection import point_to_coord, format_point
 from simple_board import SimpleGoBoard
+from play_for_node_eva import Play_for_evaluate
 
 PASS = 'pass'
 
@@ -28,7 +29,7 @@ class TreeNode(object):
     """
     A node in the MCTS tree.
     """
-    version = 0.22
+    version = 1
     name = "MCTS Player"
     def __init__(self, parent):
         """
@@ -51,9 +52,11 @@ class TreeNode(object):
                 if board.is_legal(move, color) and not board.is_eye(move, color):
                     self._children[move] = TreeNode(self)    #create a new child at this move node
                     self._children[move]._move = move
+        
         self._children[PASS] = TreeNode(self)             #?? alos give pass move a child?
-        self._children[PASS]._move = PASS
-        self._expanded = True
+        #self._children[PASS]._move = PASS  #1
+        self._children[PASS]._move = move
+        #self._expanded = True
 
     def select(self, exploration, max_flag):
         """
@@ -138,7 +141,8 @@ class MCTS(object):
         if not node._expanded:
             node.expand(board, color)
 
-        assert board.current_player == color
+        # 2 assert board.current_player == color
+        #board.current_player = color
         leaf_value = self._evaluate_rollout(board, color)  
         # Update value and visit count of nodes in this traversal.
         node.update_recursive(leaf_value)
@@ -148,49 +152,15 @@ class MCTS(object):
         Use the rollout policy to play until the end of the game, returning +1 if the current
         player wins, -1 if the opponent wins, and 0 if it is a tie.
         """
-        """
-        winner = PatternUtil.playGame(board,
-                toplay,
-                komi=self.komi,
-                limit=self.limit,
-                random_simulation=self.simulation_policy,
-                use_pattern = self.use_pattern,
-                check_selfatari= self.check_selfatari)     
-                """
-        winner = self.playGame(board, toPlay)
+        
+        #winner = self.playGame(board, toPlay)
+        #winner = Play_for_evaluate.playGame(board, toPlay)
+        winner = Play_for_evaluate.do_playout(board, toPlay)
 
         if winner == BLACK:
             return 1
-        elif winner == WHITE:
-            return -1
         else:
             return 0
-    
-    """
-    it seems get pass point after some simulation, how to run as much as simulation as possible in time limit
-    try cumulative winning result in each simulate game 
-    """
-    def playGame(self, board, toPlay):
-        """
-        run simulation game 
-        """
-        limit = 100
-        for _ in range(limit):
-        #while True:
-            
-            color = board.current_player
-            move = GoBoardUtil.generate_random_move_gomoku(board)
-            #point = GoBoardUtil.coor_to_point(move)
-            board.play_move_gomoku(move, color)
-            print("move in playGame " + str(move))
-            
-            if move == PASS:
-                break
-         
-        game_end, winner = board.check_game_end_gomoku()
-        return winner
-
-
 
 
     def get_move(self,
@@ -209,7 +179,6 @@ class MCTS(object):
         
         self.limit = limit
         
-        
         self.toplay = toplay
         self.exploration = exploration
         
@@ -218,9 +187,12 @@ class MCTS(object):
             self._playout(board_copy, toplay)
         # choose a move that has the most visit 
         moves_ls =  [(move, node._n_visits) for move, node in self._root._children.items()]
+        
         if not moves_ls:
             return None
+        #error checking
         moves_ls = sorted(moves_ls,key=lambda i:i[1],reverse=True)
+        
         move = moves_ls[0]
         self.print_stat(board, self._root, toplay)
         #self.good_print(board,self._root,self.toplay,10)
@@ -239,7 +211,7 @@ class MCTS(object):
         else:
             self._root = TreeNode(None)
         self._root._parent = None
-        self.toplay = GoBoardUtil.opponent(self.toplay)
+        #self.toplay = GoBoardUtil.opponent(self.toplay)
 
     def point_to_string(self, board_size, point):
         if point == None:

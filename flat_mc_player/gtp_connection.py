@@ -332,6 +332,7 @@ class GtpConnection():
             signal.alarm(0)
         except Exception as e:
             move=self.go_engine.best_move
+            
 
         if move == PASS:
             self.respond("pass")

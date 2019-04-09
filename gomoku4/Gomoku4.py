@@ -7,6 +7,7 @@ from board_util import GoBoardUtil, EMPTY
 from simple_board import SimpleGoBoard
 from MCTS import MCTS
 
+
 import random
 import numpy as np
 
@@ -42,7 +43,7 @@ class GomokuSimulationPlayer(object):
     then select the one with best win-rate.
     playout could be either random or rule_based (i.e., uses pre-defined patterns) 
     """
-    def __init__(self, n_simualtions_per_move=100, playout_policy='random', board_size=7,limit=100, exploration=1.96):
+    def __init__(self, n_simualtions_per_move=500, playout_policy='random', board_size=7,limit=100, exploration=0.01):
         assert(playout_policy in ['random', 'rule_based'])
         self.n_simualtions_per_move=n_simualtions_per_move
         self.board_size=board_size
@@ -100,10 +101,11 @@ class GomokuSimulationPlayer(object):
             assert(res == GoBoardUtil.opponent(color_to_play))
             return -1.0
 
-    def get_move(self, board, color_to_play):
-        """
-        The genmove function called by gtp_connection
-        """
+    def get_move(self, board, toPlay):
+        
+        #The genmove function called by gtp_connection
+        
+
         moves=GoBoardUtil.generate_legal_moves_gomoku(board)
         toplay=board.current_player
         best_result, best_move=-1.1, None
@@ -131,11 +133,25 @@ class GomokuSimulationPlayer(object):
         assert(best_move is not None)
         return best_move
 
+    def run(self, board, color, print_info=False):
+        self.MCTS.exploration = self.exploration
+        self.MCTS.limit = self.limit
+        self.MCTS.toplay = color
+        self.MCTS.pattern = True
+        self.MCTS.selfatari = True
+     
+
+        for n in range(self.num_simulation):
+            board_copy = board.copy()
+            self.MCTS._playout(board_copy, color)
+
+  
+    
     def reset(self):
         self.MCTS = MCTS()
 
     def update(self, move):
-        self.parent = self.MCTS._root 
+        #self.parent = self.MCTS._root 
         self.MCTS.update_with_move(move)
     
 
@@ -144,8 +160,9 @@ class GomokuSimulationPlayer(object):
         #one_d_board = two_d_board.reshape((1,49))
 
         move = self.MCTS.get_move(board, toPlay, limit=self.limit,
-                                    num_simulation = self.n_simualtions_per_move,
-                                    exploration = self.exploration)
+                num_simulation = self.n_simualtions_per_move,
+                exploration = self.exploration)
+        
         self.update(move)
         return move
 

@@ -11,10 +11,10 @@ from sys import stdin, stdout, stderr
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
                        MAXSIZE, coord_to_point
 
-
 import numpy as np
 import re
 import signal
+import copy
 
 class GtpConnection():
 
@@ -61,7 +61,7 @@ class GtpConnection():
             "policy_moves": self.display_pattern_moves
         }
         #self.timelimit = 58
-        self.timelimit = 10
+        self.timelimit = 20
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -312,6 +312,7 @@ class GtpConnection():
         """
         Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
         """
+        
         board_color = args[0].lower()
         color = color_to_int(board_color)
         game_end, winner = self.board.check_game_end_gomoku()
@@ -326,29 +327,33 @@ class GtpConnection():
         
         board_is_full = (len(moves) == 0)
         if board_is_full:
-            self.respond("pass")
+            self.respond("pass 333")
             return
         move=None
         
-        #move = self.go_engine.get_move_mc(self.board, color)
-        #print("see what move return " + str(move))
-
         try:
             signal.alarm(int(self.timelimit))
             self.sboard = self.board.copy()
             #move = self.go_engine.get_move(self.board, color)
-            move = self.go_engine.get_move_mc(self.board, color)
-        
-            self.board=self.sboard
+            move = self.go_engine.get_move_mc(self.board, color)  
+            #self.board=self.sboard
             signal.alarm(0)
-        except Exception as e:
-            move=self.go_engine.best_move
+            if move is None:
+                self.respond("pass 111")
+                return
 
-        if move == PASS:
-            self.respond("pass 111")
-            return
+        except Exception as e:
+            #move = self.go_engine.best_move
+            move = GoBoardUtil.generate_random_move_gomoku(self.board)
+            self.respond("random move") 
+            
+        #if move == PASS:
+         #   self.respond("pass 222")
+          #  return
+        #print("move type is "+ str(move))
         move_coord = point_to_coord(move, self.board.size)
         move_as_string = format_point(move_coord)
+        #print(move_as_string)
         if self.board.is_legal_gomoku(move, color):
             self.board.play_move_gomoku(move, color)
             self.respond(move_as_string)

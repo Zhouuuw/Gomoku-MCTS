@@ -10,6 +10,8 @@ import traceback
 from sys import stdin, stdout, stderr
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
                        MAXSIZE, coord_to_point
+
+
 import numpy as np
 import re
 import signal
@@ -58,7 +60,8 @@ class GtpConnection():
             "policy": self.set_playout_policy, 
             "policy_moves": self.display_pattern_moves
         }
-        self.timelimit=60
+        #self.timelimit = 58
+        self.timelimit = 10
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -319,22 +322,30 @@ class GtpConnection():
                 self.respond("resign")
             return
         moves = self.board.get_empty_points()
+        #print("moves " + str(moves))
+        
         board_is_full = (len(moves) == 0)
         if board_is_full:
             self.respond("pass")
             return
         move=None
+        
+        #move = self.go_engine.get_move_mc(self.board, color)
+        #print("see what move return " + str(move))
+
         try:
             signal.alarm(int(self.timelimit))
             self.sboard = self.board.copy()
-            move = self.go_engine.get_move(self.board, color)
+            #move = self.go_engine.get_move(self.board, color)
+            move = self.go_engine.get_move_mc(self.board, color)
+        
             self.board=self.sboard
             signal.alarm(0)
         except Exception as e:
             move=self.go_engine.best_move
 
         if move == PASS:
-            self.respond("pass")
+            self.respond("pass 111")
             return
         move_coord = point_to_coord(move, self.board.size)
         move_as_string = format_point(move_coord)
@@ -343,6 +354,17 @@ class GtpConnection():
             self.respond(move_as_string)
         else:
             self.respond("illegal move: {}".format(move_as_string))
+
+        #two_d = GoBoardUtil.get_twoD_board(self.board)
+        #print("1 d" + str(two_d.reshape((1,49))))
+        #print("2-d" + str(two_d))
+        #print("here is board " + str(GoBoardUtil.get_twoD_board(self.board)))
+        #print("legal move " + move_as_string)
+        #print("move_coor is " + str(move_coord))
+        #print("self.board is 1-d " + str(self.board.board))
+
+   
+    
 
     def gogui_rules_game_id_cmd(self, args):
         self.respond("Gomoku")

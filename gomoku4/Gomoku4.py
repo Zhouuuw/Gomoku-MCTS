@@ -5,6 +5,7 @@
 from gtp_connection import GtpConnection
 from board_util import GoBoardUtil, EMPTY
 from simple_board import SimpleGoBoard
+from MCTS import MCTS
 
 import random
 import numpy as np
@@ -27,24 +28,39 @@ def game_result(board):
         return 'draw'
     return None
 
+def count_at_depth(node, depth, nodesAtDepth):
+    if not node._expanded:
+        return
+    nodesAtDepth[depth] += 1
+    for _,child in node._children.items():
+        count_at_depth(child, depth+1, nodesAtDepth)
+
+
 class GomokuSimulationPlayer(object):
     """
     For each move do `n_simualtions_per_move` playouts,
     then select the one with best win-rate.
     playout could be either random or rule_based (i.e., uses pre-defined patterns) 
     """
-    def __init__(self, n_simualtions_per_move=10, playout_policy='random', board_size=7):
+    def __init__(self, n_simualtions_per_move=100, playout_policy='random', board_size=7,limit=100, exploration=1.96):
         assert(playout_policy in ['random', 'rule_based'])
         self.n_simualtions_per_move=n_simualtions_per_move
         self.board_size=board_size
         self.playout_policy=playout_policy
+        #self.board = board
 
         #NOTE: pattern has preference, later pattern is ignored if an earlier pattern is found
         self.pattern_list=['Win', 'BlockWin', 'OpenFour', 'BlockOpenFour', 'Random']
 
-        self.name="Gomoku3"
-        self.version = 3.0
+        self.name="Gomoku4"
+        self.version = 4.0
         self.best_move=None
+
+        self.MCTS = MCTS()
+        self.limit = limit
+        self.num_simulation = n_simualtions_per_move
+        self.exploration = exploration
+        self.parent = None
     
     def set_playout_policy(self, playout_policy='random'):
         assert(playout_policy in ['random', 'rule_based'])
@@ -115,6 +131,33 @@ class GomokuSimulationPlayer(object):
         assert(best_move is not None)
         return best_move
 
+    def reset(self):
+        self.MCTS = MCTS()
+
+    def update(self, move):
+        self.parent = self.MCTS._root 
+        self.MCTS.update_with_move(move)
+    
+
+    def get_move_mc(self, board, toPlay):
+        #two_d_board = GoBoardUtil.get_twoD_board(board)
+        #one_d_board = two_d_board.reshape((1,49))
+
+        move = self.MCTS.get_move(board, toPlay, limit=self.limit,
+                                    num_simulation = self.n_simualtions_per_move,
+                                    exploration = self.exploration)
+        self.update(move)
+        return move
+
+    def get_node_depth(self, root):
+        MAX_DEPTH = 100
+        nodesAtDepth = [0] * MAX_DEPTH
+        count_at_depth(root, 0, nodesAtDepth)
+        prev_nodes = 1
+        return nodesAtDepth
+        
+        
+
 def run():
     """
     start the gtp connection and wait for commands.
@@ -122,6 +165,7 @@ def run():
     board = SimpleGoBoard(7)
     con = GtpConnection(GomokuSimulationPlayer(), board)
     con.start_connection()
+
 
 if __name__=='__main__':
     run()

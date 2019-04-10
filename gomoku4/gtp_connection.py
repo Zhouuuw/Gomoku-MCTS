@@ -61,7 +61,7 @@ class GtpConnection():
             "policy_moves": self.display_pattern_moves
         }
         #self.timelimit = 58
-        self.timelimit = 20
+        self.timelimit = 2
 
         # used for argument checking
         # values: (required number of arguments, 

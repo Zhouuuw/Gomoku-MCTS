@@ -133,19 +133,7 @@ class GomokuSimulationPlayer(object):
         assert(best_move is not None)
         return best_move
 
-    def run(self, board, color, print_info=False):
-        self.MCTS.exploration = self.exploration
-        self.MCTS.limit = self.limit
-        self.MCTS.toplay = color
-        self.MCTS.pattern = True
-        self.MCTS.selfatari = True
-     
 
-        for n in range(self.num_simulation):
-            board_copy = board.copy()
-            self.MCTS._playout(board_copy, color)
-
-  
     
     def reset(self):
         self.MCTS = MCTS()

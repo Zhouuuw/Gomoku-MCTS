@@ -15,6 +15,7 @@ import numpy as np
 import re
 import signal
 import copy
+import time
 
 class GtpConnection():
 
@@ -61,7 +62,7 @@ class GtpConnection():
             "policy_moves": self.display_pattern_moves
         }
         #self.timelimit = 58
-        self.timelimit = 2
+        self.timelimit = 56
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -315,6 +316,10 @@ class GtpConnection():
         
         board_color = args[0].lower()
         color = color_to_int(board_color)
+        if color != self.board.current_player:
+            self.respond("wrong turn")
+            return
+            
         game_end, winner = self.board.check_game_end_gomoku()
         if game_end:
             if winner == color:
@@ -330,12 +335,14 @@ class GtpConnection():
             self.respond("pass 333")
             return
         move=None
-        
+
+        """
         try:
             signal.alarm(int(self.timelimit))
             self.sboard = self.board.copy()
             #move = self.go_engine.get_move(self.board, color)
             move = self.go_engine.get_move_mc(self.board, color)  
+            print('i am herezZ')
             #self.board=self.sboard
             signal.alarm(0)
             if move is None:
@@ -346,7 +353,21 @@ class GtpConnection():
             #move = self.go_engine.best_move
             move = GoBoardUtil.generate_random_move_gomoku(self.board)
             self.respond("random move") 
-            
+        """
+        try:
+            start_time = time.time()
+            while time.time() - start_time < self.timelimit:
+                self.sboard = self.board.copy()
+                move = self.go_engine.get_move_mc(self.board, color)
+                print('i am herez not random')
+                if move is None:
+                    self.respond("pass 111")
+                    return
+        except Exception as e:
+            #move = self.go_engine.get_move_mc(self.board, color)
+            move = GoBoardUtil.generate_random_move_gomoku(self.board)
+            self.respond("random move")
+
         #if move == PASS:
          #   self.respond("pass 222")
           #  return
@@ -368,7 +389,7 @@ class GtpConnection():
         #print("move_coor is " + str(move_coord))
         #print("self.board is 1-d " + str(self.board.board))
 
-   
+  
     
 
     def gogui_rules_game_id_cmd(self, args):

@@ -48,7 +48,7 @@ class GomokuSimulationPlayer(object):
         self.n_simualtions_per_move=n_simualtions_per_move
         self.board_size=board_size
         self.playout_policy=playout_policy
-        #self.board = board
+        
 
         #NOTE: pattern has preference, later pattern is ignored if an earlier pattern is found
         self.pattern_list=['Win', 'BlockWin', 'OpenFour', 'BlockOpenFour', 'Random']
@@ -62,6 +62,7 @@ class GomokuSimulationPlayer(object):
         self.num_simulation = n_simualtions_per_move
         self.exploration = exploration
         self.parent = None
+        self.move = None
     
     def set_playout_policy(self, playout_policy='random'):
         assert(playout_policy in ['random', 'rule_based'])
@@ -139,7 +140,7 @@ class GomokuSimulationPlayer(object):
         self.MCTS = MCTS()
 
     def update(self, move):
-        #self.parent = self.MCTS._root 
+        self.parent = self.MCTS._root 
         self.MCTS.update_with_move(move)
     
 

@@ -60,22 +60,29 @@ class Play_for_evaluate(object):
         run simulation game 
         """
         limit = 1000
+        simulation_moves=[]
         #cboard = board.copy()
+        nuPasses = 0
         for _ in range(limit):
         #while True:
-            
             color = board.current_player
-            move = GoBoardUtil.generate_random_move_gomoku(board)
-            if move != None:
-                if_legal = board.play_move_gomoku(move, color)
+            playout_move = GoBoardUtil.generate_random_move_gomoku(board)
+            if playout_move != None:
+                if_legal = board.play_move_gomoku(playout_move, color)
+                #simulation_moves.append(playout_move)
+                #_, res = board.check_game_end_gomoku()
                 #print(if_legal)
                 if not if_legal:
                     print("illegal move#")
                 #assert if_legal
             else:
-                board.play_move_gomoku(move, color)
-                if move == PASS:
+                #board.play_move_gomoku(playout_move, color)
+                if playout_move == PASS:
                     break
+                    #nuPasses +=1
+                #else nuPasses = 0
+                #if nuPasses >= 2:
+                 #   break
             color = GoBoardUtil.opponent(color)
         _, winner = board.check_game_end_gomoku()
         return winner

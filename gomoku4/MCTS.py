@@ -54,9 +54,8 @@ class TreeNode(object):
                     self._children[move]._move = move
         
         self._children[PASS] = TreeNode(self)             #?? alos give pass move a child?
-        #self._children[PASS]._move = PASS  #1
-        self._children[PASS]._move = move
-        #self._expanded = True
+        self._children[PASS]._move = PASS  #1
+        self._expanded = True
 
     def select(self, exploration, max_flag):
         """
@@ -131,7 +130,7 @@ class MCTS(object):
             max_flag = color == BLACK                  #why max flag is a color?
             move, next_node = node.select(self.exploration,max_flag)
             if move!=PASS:
-                assert board.is_legal(move, color)
+                assert board.is_legal_gomoku(move, color)
             if move == PASS:
                 move = None
             board.play_move(move, color)
@@ -141,7 +140,7 @@ class MCTS(object):
         if not node._expanded:
             node.expand(board, color)
 
-        # 2 assert board.current_player == color
+        assert board.current_player == color
         #board.current_player = color
         leaf_value = self._evaluate_rollout(board, color)  
         # Update value and visit count of nodes in this traversal.
@@ -154,8 +153,9 @@ class MCTS(object):
         """
         
         #winner = self.playGame(board, toPlay)
-        #winner = Play_for_evaluate.playGame(board, toPlay)
-        winner = Play_for_evaluate.do_playout(board, toPlay)
+        winner = Play_for_evaluate.playGame(board, toPlay)
+        #print("winner here" + str(winner))
+        #winner = Play_for_evaluate.do_playout(board, toPlay)
 
         if winner == BLACK:
             return 1
@@ -211,7 +211,7 @@ class MCTS(object):
         else:
             self._root = TreeNode(None)
         self._root._parent = None
-        #self.toplay = GoBoardUtil.opponent(self.toplay)
+        self.toplay = GoBoardUtil.opponent(self.toplay)
 
     def point_to_string(self, board_size, point):
         if point == None:

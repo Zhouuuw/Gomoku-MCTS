@@ -520,7 +520,7 @@ class SimpleGoBoard(object):
         i=0
         while i<4 and not bool(moveSet[i]): i+=1
         if i==4:
-            return None
+            return i,None
         else:
             return i, list(moveSet[i])
             

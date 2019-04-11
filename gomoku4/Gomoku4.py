@@ -43,7 +43,7 @@ class GomokuSimulationPlayer(object):
     then select the one with best win-rate.
     playout could be either random or rule_based (i.e., uses pre-defined patterns) 
     """
-    def __init__(self, n_simualtions_per_move=500, playout_policy='random', board_size=7,limit=100, exploration=0.01):
+    def __init__(self, n_simualtions_per_move=500, playout_policy='random', board_size=7,limit=100, exploration=1.96):
         assert(playout_policy in ['random', 'rule_based'])
         self.n_simualtions_per_move=n_simualtions_per_move
         self.board_size=board_size
@@ -148,10 +148,13 @@ class GomokuSimulationPlayer(object):
         #two_d_board = GoBoardUtil.get_twoD_board(board)
         #one_d_board = two_d_board.reshape((1,49))
 
+        #first check if there are pattern can apply
+        #pattern_moves = board.get_pattern_moves()
         move = self.MCTS.get_move(board, toPlay, limit=self.limit,
                 num_simulation = self.n_simualtions_per_move,
                 exploration = self.exploration)
         
+
         self.update(move)
         return move
 

@@ -16,6 +16,7 @@ import re
 import signal
 import copy
 import time
+import random
 
 class GtpConnection():
 
@@ -62,7 +63,7 @@ class GtpConnection():
             "policy_moves": self.display_pattern_moves
         }
         #self.timelimit = 58
-        self.timelimit = 56
+        self.timelimit = 55
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -319,7 +320,7 @@ class GtpConnection():
         if color != self.board.current_player:
             self.respond("wrong turn")
             return
-            
+
         game_end, winner = self.board.check_game_end_gomoku()
         if game_end:
             if winner == color:
@@ -336,37 +337,32 @@ class GtpConnection():
             return
         move=None
 
-        """
         try:
+            #start_time = time.time()
+            #while time.time() - start_time < self.timelimit:
             signal.alarm(int(self.timelimit))
             self.sboard = self.board.copy()
-            #move = self.go_engine.get_move(self.board, color)
-            move = self.go_engine.get_move_mc(self.board, color)  
-            print('i am herezZ')
-            #self.board=self.sboard
-            signal.alarm(0)
+               
+            _, pattern_moves = self.board.get_pattern_moves()
+
+            if pattern_moves is None:
+                move = self.go_engine.get_move_mc(self.board, color)
+                print('i am herez not random')
+                    #elif pattern_moves is not None and len(pattern_moves) != 0:
+            else:
+                move = random.choice(pattern_moves)
+                #break
+
             if move is None:
                 self.respond("pass 111")
                 return
-
+            
+            signal.alarm(0)
         except Exception as e:
-            #move = self.go_engine.best_move
-            move = GoBoardUtil.generate_random_move_gomoku(self.board)
-            self.respond("random move") 
-        """
-        try:
-            start_time = time.time()
-            while time.time() - start_time < self.timelimit:
-                self.sboard = self.board.copy()
-                move = self.go_engine.get_move_mc(self.board, color)
-                print('i am herez not random')
-                if move is None:
-                    self.respond("pass 111")
-                    return
-        except Exception as e:
-            #move = self.go_engine.get_move_mc(self.board, color)
+            
             move = GoBoardUtil.generate_random_move_gomoku(self.board)
             self.respond("random move")
+            print(e.args)
 
         #if move == PASS:
          #   self.respond("pass 222")

@@ -1,0 +1,18 @@
+Script started on Wed 10 Apr 2019 08:18:37 PM MDT
+]0;carson@carson-TM1701: ~/Desktop/Gomoku-MCTS[01;32mcarson@carson-TM1701[00m:[01;34m~/Desktop/Gomoku-MCTS[00m$ python3 play.py 
+F2
+A2
+D4
+E2
+C6
+E1
+E3
+A7
+C5
+G2
+G1
+player1 win 1 player2 win 0 draw 0
+]0;carson@carson-TM1701: ~/Desktop/Gomoku-MCTS[01;32mcarson@carson-TM1701[00m:[01;34m~/Desktop/Gomoku-MCTS[00m$ exit
+exit
+
+Script done on Wed 10 Apr 2019 08:20:04 PM MDT

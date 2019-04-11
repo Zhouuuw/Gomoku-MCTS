@@ -87,6 +87,35 @@ class SimpleGoBoard(object):
         self.liberty_of = np.full(self.maxpoint, NULLPOINT, dtype = np.int32)
         self._initialize_empty_points(self.board)
         self._initialize_neighbors()
+        self.index = {
+            "horizontal1":(9,10,11,12,13,14,15),
+            "horizontal2":(17,18,19,20,21,22,23),
+            "horizontal3":(25,26,27,28,29,30,31),
+            "horizontal4":(33,34,35,36,37,38,39),
+            "horizontal5":(41,42,43,44,45,46,47),
+            "horizontal6":(49,50,51,52,53,54,55),
+            "horizontal7":(57,58,59,60,61,62,63),
+
+            "vertical1":(9,17,25,33,41,49,57),
+            "vertical2":(10,18,26,34,42,50,58),
+            "vertical3":(59,51,42,35,27,19,11),
+            "vertical4":(12,20,28,36,44,52,60),
+            "vertical5":(13,21,29,37,45,53,61),
+            "vertical6":(14,22,30,38,46,54,62),
+            "vertical7":(15,23,31,35,47,55,63),
+
+            "SWtoNE1":(11,20,29,38,47),
+            "SWtoNE2":(10,19,28,37,46,55),
+            "SWtoNE3":(9,18,27,36,45,54,63),
+            "SWtoNE4":(17,26,35,44,53,62),
+            "SWtoNE5":(25,34,43,52,61),
+
+            "SEtoNW1":(13,20,27,34,41),
+            "SEtoNW2":(14,21,28,35,42,49),
+            "SEtoNW3":(15,22,29,36,43,50,57),
+            "SEtoNW4":(23,30,37,44,51,58),
+            "SEtoNW5":(31,38,45,52,59)
+        }
 
     def copy(self):
         b = SimpleGoBoard(self.size)
@@ -523,3 +552,126 @@ class SimpleGoBoard(object):
             return None
         else:
             return list(moveSet[i])
+
+    def get_expension_score(self):
+        score = 0
+        for key in self.index.key():
+            pattern = ""
+            for index in self.check_pattern:
+                pattern += self.board[index]
+            score += self.check_pattern(pattern)
+
+        return score
+
+    def check_pattern(self,pattern):
+        win = False
+        lose = False
+        block = False
+        
+        me = self.current_player
+        he = GoBoardUtil.opponent(me)
+
+        l = len(pattern)
+
+        if l == 7:
+            if pattern[2] == he:
+                if (pattern[3]==me |pattern[4] == me):
+                    block = True
+                else:
+                    lose = True
+
+            elif pattern[3] == he:
+                if (pattern[1]==me | pattern[2] == me | pattern[4]==me |pattern[5] == me):
+                    block = True
+                else:
+                    lose = True
+
+            elif pattern[4] == he:
+                if (pattern[2]==me | pattern[3] == me):
+                    block = True
+                else:
+                    lose = True
+
+            elif pattern[2] == me:
+                if (pattern[3]==he |pattern[4] == he):
+                    block = True
+                else:
+                    win = True
+            
+            elif pattern[3] == me:
+                if (pattern[1]==he | pattern[2] == he | pattern[4]==he |pattern[5] == he):
+                    block = True
+                else:
+                    win = True
+            
+            elif pattern[4] == me:
+                if (pattern[2]==he | pattern[3] == he):
+                    block = True
+                else:
+                    win = True
+        elif l ==6 :
+            if pattern[1] == he:
+                if (pattern[2]==me | pattern[3] == me | pattern[4]==me):
+                    block = True
+                else:
+                    lose = True
+            elif pattern[2] == he:
+                if (pattern[3]==me | pattern[4] == me| pattern[1]==me):
+                    block = True
+                else:
+                    lose = True 
+            elif pattern[4] == he:
+                if (pattern[1]==me | pattern[2] == me| pattern[3]==me):
+                    block = True
+                else:
+                    lose = True 
+            elif pattern[1] == me:
+                if (pattern[2]==he | pattern[3] == he | pattern[4]==he):
+                    block = True
+                else:
+                    win = True
+            elif pattern[2] == me:
+                if (pattern[3]==he | pattern[4] == he | pattern[1]==he):
+                    block = True
+                else:
+                    win = True
+            elif pattern[4] == me:
+                if (pattern[1]==he | pattern[2] == he | pattern[3]==he):
+                    block = True
+                else:
+                    win = True
+
+        elif l == 5:
+            if me in pattern:
+                if he not in pattern:
+                    win = True
+                else:
+                    block = True
+            if he in pattern:
+                lose = True
+        
+        if block:
+            return 0
+        elif win:
+            return 10
+        elif lose:
+            return -10
+    
+    def expansion(self):
+        empty_points = self.get_empty_points
+        if len(empty_points) == 49:
+            return 36
+        if len(empty_points) == 48 and self.get_color(36) == EMPTY:
+            return 36
+
+        best = -1000
+        best_move = None
+        for point in empty_points:
+            self.board[point] = self.current_player
+            score = self.get_expension_score
+            if score > best:
+                best = score
+                best_move = point
+            self.board[point] = EMPTY
+            
+
